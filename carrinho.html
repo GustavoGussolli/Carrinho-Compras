@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho de Compras</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Loja Online</h1>
+        <div class="carrinho-badge">
+            <a href="#">
+                <i class="bi bi-cart icone-carrinho"></i>
+                <span class="contador">0</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="carrinho">
+        <!-- Aqui os itens do carrinho serão gerados -->
+    </main>
+
+    <div class="total">
+        <p>Total: R$ 0,00</p>
+        <button class="botao-comprar">Finalizar Compra</button>
+    </div>
+
+    <script>
+        function obterTodosProdutos() {
+            let carrinho = JSON.parse(localStorage.getItem('carrinho'));
+            return carrinho ? carrinho : [];
+        }
+
+        function atualizarContadorCarrinho() {
+            let carrinho = obterTodosProdutos();
+            let totalProdutos = carrinho.reduce((acc, item) => acc + item.quantidade, 0);
+            document.querySelector('.contador').textContent = totalProdutos;
+        }
+
+        function atualizarTotalCarrinho() {
+            let carrinho = obterTodosProdutos();
+            let total = 0;
+
+            carrinho.forEach(item => {
+                let preco = parseFloat(item.preço.replace('R$ ', '').replace(',', '.'));
+                total += preco * item.quantidade;
+            });
+
+            document.querySelector('.total p').textContent = `Total: R$ ${total.toFixed(2)}`;
+        }
+
+        function criarItemCarrinho(item, index) {
+            let itemCarrinho = document.createElement('div');
+            itemCarrinho.classList.add('item-carrinho');
+
+            let itemDiv = document.createElement('div');
+            itemDiv.classList.add('item');
+
+            let itemImg = document.createElement('img');
+            itemImg.src = "https://picsum.photos/300/500";
+            itemImg.alt = "Imagem do Produto";
+            itemImg.classList.add('item-img');
+
+            let itemInfo = document.createElement('div');
+            itemInfo.classList.add('item-info');
+
+            let nomeProduto = document.createElement('h2');
+            nomeProduto.textContent = item.nome;
+
+            let precoProduto = document.createElement('p');
+            precoProduto.classList.add('preco');
+            precoProduto.textContent = item.preço;
+
+            let quantidadeInput = document.createElement('input');
+            quantidadeInput.type = 'number';
+            quantidadeInput.id = 'quantidade';
+            quantidadeInput.name = 'quantidade';
+            quantidadeInput.min = 1;
+            quantidadeInput.value = item.quantidade;
+
+            quantidadeInput.addEventListener('change', () => {
+                item.quantidade = parseInt(quantidadeInput.value);
+                localStorage.setItem('carrinho', JSON.stringify(obterTodosProdutos()));
+                atualizarTotalCarrinho();
+                atualizarContadorCarrinho();
+            });
+
+            let botaoRemover = document.createElement('button');
+            botaoRemover.classList.add('botao-remover');
+            botaoRemover.textContent = 'Remover';
+            botaoRemover.addEventListener('click', () => {
+                let carrinho = obterTodosProdutos();
+                carrinho.splice(index, 1);
+                localStorage.setItem('carrinho', JSON.stringify(carrinho));
+                location.reload();
+            });
+
+            itemInfo.appendChild(nomeProduto);
+            itemInfo.appendChild(precoProduto);
+            itemInfo.appendChild(quantidadeInput);
+            itemDiv.appendChild(itemImg);
+            itemDiv.appendChild(itemInfo);
+            itemCarrinho.appendChild(itemDiv);
+            itemCarrinho.appendChild(botaoRemover);
+
+            return itemCarrinho;
+        }
+
+        function carregarCarrinho() {
+            let carrinho = obterTodosProdutos();
+            let carrinhoContainer = document.querySelector('.carrinho');
+            carrinhoContainer.innerHTML = '';
+
+            carrinho.forEach((item, index) => {
+                let itemCarrinho = criarItemCarrinho(item, index);
+                carrinhoContainer.appendChild(itemCarrinho);
+            });
+
+            atualizarTotalCarrinho();
+            atualizarContadorCarrinho();
+        }
+
+        carregarCarrinho();
+    </script>
+</body>
+</html>
